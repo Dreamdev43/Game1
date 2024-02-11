@@ -1,16 +1,25 @@
-Connect Device to Linux:
-install android adb and android fastboot
-edit as root:
-  sudo vi /etc/udev/rules.d/51-android.rules
-add vendor line
-  SUBSYSTEM==”usb”, ATTR{idVendor}==”05c6”, MODE=”0666”, GROUP=”plugdev”
-change file permissions:
-   chmod a+r /etc/udev/rules.d/51-android.rules 
-restart udev rules
-  sudo service udev restart
-plug in phone via USB and enable remote debugging in the developer menu on the phone
-download peal firmware image from geeksphone:
-  http://downloads.geeksphone.com/
-unpack the archive and run flash.sh or execute commands one by one
-  sudo ./flash.sh
-  
+name: Build
+on: [push,pull_request]
+
+jobs:
+  # Build job. Builds app for Android with Buildozer
+  build-android:
+    name: Build for Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          workdir: .
+          buildozer_version: stable
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: ${{ steps.buildozer.outputs.filename }}
